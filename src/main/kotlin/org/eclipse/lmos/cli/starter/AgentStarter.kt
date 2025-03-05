@@ -23,7 +23,7 @@ fun checkForStartUpStatus(projectRootDirectory: Path): String {
             val logs = logFile.readText()
             when {
                 "Starting hot-reload of agents" in logs -> "STARTED"
-                "finished with non-zero exit value 1" in logs -> "FAILED"
+                "APPLICATION FAILED TO START" in logs -> "FAILED"
                 else -> "PROGRESS"
             }
         }

@@ -16,7 +16,7 @@ class MacOSAgentStarter: AgentStarter {
 
         val agents = AGENT_PROJECTS_DIRECTORY.resolve(AgentType.ARC.name)
 
-        // TODO: Delete older files 
+        // TODO: Delete older files
 //        val deleteCommand = arrayOf("sh", "-c", "cd $agents && if [ -f application.log ]; then rm application.log && echo \"deleted\"; fi")
 //        val result = executeCommand(deleteCommand)
 //        println("Delete command: ${deleteCommand.contentToString()}, Result: $result")
