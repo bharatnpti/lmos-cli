@@ -11,18 +11,16 @@ import java.util.concurrent.Callable
 class ListLLMConfig : Callable<Int> {
     override fun call(): Int {
 
-        printlnHeader("Listing all LLMs")
-
         val listLLMConfig = DefaultLLMConfigManager().listLLMConfig()
         if (listLLMConfig.isEmpty()) {
-            println("No LLM found")
+            printError("Configuration for LLM Not found")
         } else {
-            println("Found ${listLLMConfig.size} LLM with the following IDs:")
+            printSuccess("Found ${listLLMConfig.size} LLM with the following IDs:")
             listLLMConfig
                 .forEach {
                     println("""
-                ID: $it
-            """.trimIndent())
+                |   ID: $it
+            """.trimMargin())
                 }
         }
         return 0
@@ -32,6 +30,30 @@ class ListLLMConfig : Callable<Int> {
 
 fun printlnHeader(s: String) {
     CommandLine.Help.Ansi.AUTO.string(
-        "@|bold,green Using id: $s |@"
+        "@|blue $s |@"
+    ).also(::println)
+}
+
+fun promptUserInput(s: String) {
+    CommandLine.Help.Ansi.AUTO.string(
+        "@|yellow $s |@"
+    ).also(::print)
+}
+
+fun printSuccess(s: String) {
+    CommandLine.Help.Ansi.AUTO.string(
+        "@|bold,green $s |@"
+    ).also(::println)
+}
+
+fun printConvOutput(role: String, message: String) {
+    CommandLine.Help.Ansi.AUTO.string(
+        "@|bold,cyan $role |@: $message"
+    ).also(::println)
+}
+
+fun printError(s: String) {
+    CommandLine.Help.Ansi.AUTO.string(
+        "@|bold,red $s |@"
     ).also(::println)
 }

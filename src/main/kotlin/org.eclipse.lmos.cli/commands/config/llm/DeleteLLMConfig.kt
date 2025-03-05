@@ -7,7 +7,7 @@ import java.util.concurrent.Callable
 
 @CommandLine.Command(
     name = "delete",
-    description = ["Delete a credential or all credentials"],
+    description = ["Delete a credential"],
 )
 class DeleteLLMConfig : Callable<Int> {
 
@@ -16,14 +16,17 @@ class DeleteLLMConfig : Callable<Int> {
 
     override fun call(): Int {
 
-        printlnHeader("Deleting LLM Config")
         val id = id ?: promptUser("Enter id")
-        val deleteLLMConfig = DefaultLLMConfigManager().deleteLLMConfig(id)
-        if (deleteLLMConfig == null) {
-            println("No LLM found with id: $id")
+        val llmConfigManager = DefaultLLMConfigManager()
+        val existingLLMConfig = llmConfigManager.getLLMConfig(id)
+
+        if (existingLLMConfig == null) {
+            printError("LLM Config not found with id: $id")
+            return 0
         } else {
-            println("Deleted LLM with id: $id, modelName: ${deleteLLMConfig.modelName}")
+            llmConfigManager.deleteLLMConfig(id)
+            printSuccess("Deleted LLM with id: $id, modelName: ${existingLLMConfig.modelName}")
+            return 0
         }
-        return 0
     }
 } 

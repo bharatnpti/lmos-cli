@@ -23,6 +23,8 @@ dependencies {
     implementation("io.quarkus:quarkus-kotlin")
     implementation("io.quarkus:quarkus-picocli")
     implementation("io.quarkus:quarkus-arc")
+    implementation("io.quarkus:quarkus-rest-client")
+    implementation("io.quarkus:quarkus-rest-client-jackson")
     implementation("org.apache.commons:commons-compress:1.27.0")
     implementation("net.mamoe.yamlkt:yamlkt:0.13.0")
     implementation("org.eclipse.lmos:lmos-starter:0.0.1-SNAPSHOT")

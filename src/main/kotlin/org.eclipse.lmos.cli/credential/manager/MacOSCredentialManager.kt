@@ -3,6 +3,7 @@ package org.eclipse.lmos.cli.credential.manager
 import jakarta.enterprise.context.ApplicationScoped
 import org.eclipse.lmos.cli.credential.Credential
 import org.eclipse.lmos.cli.credential.CredentialManagerType
+import org.eclipse.lmos.cli.utils.executeCommand
 import java.io.BufferedReader
 import java.util.*
 
@@ -44,9 +45,7 @@ class MacOSCredentialManager: CredentialManager {
             Base64.getEncoder().encodeToString(credential.content.toByteArray(Charsets.UTF_8)),
             "-C",
             prefix.substring(0, 4),
-            "-U" // Update if exists
-            // Optionally, add a comment or label to help identify entries
-            // "-j", "ManagedByCredentialManagerApp"
+            "-U"
         )
         executeCommand(command)
     }
@@ -58,12 +57,10 @@ class MacOSCredentialManager: CredentialManager {
         if (output.contains("could not be found")) {
             return null
         }
-//        val cleanedOutput = output.replace("\\s".toRegex(), "")
         return Credential(id, String(Base64.getMimeDecoder().decode(output), Charsets.UTF_8))
     }
 
     override fun updateCredential(prefix: String, credential: Credential) {
-        // The add-generic-password command with the -U option updates the credential if it exists
         addCredential(prefix, credential)
     }
 
@@ -93,16 +90,4 @@ class MacOSCredentialManager: CredentialManager {
         }
     }
 
-
-
-}
-
-fun executeCommand(command: Array<String>, wait: Boolean = true): String {
-    val process = ProcessBuilder(*command).redirectErrorStream(true).start()
-    var output = ""
-    if(wait) {
-        output = process.inputStream.bufferedReader().use(BufferedReader::readText)
-        process.waitFor()
-    }
-    return output
 }

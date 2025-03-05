@@ -15,22 +15,20 @@ class GetLLMConfig : Callable<Int> {
     var id: String? = null
 
     override fun call(): Int {
-
-        printlnHeader("Getting LLM Config")
         val id = id ?: promptUser("Enter id")
         val llmConfig = DefaultLLMConfigManager().getLLMConfig(id)
         if (llmConfig == null) {
-            println("LLM with ID $id not found")
-            return 1
+            printError("LLM Config with ID $id not found")
+            return 0
         } else {
-            println(
+            printSuccess(
                 """
-                |ID: ${llmConfig.id}
-                |Model Name: ${llmConfig.modelName}
-                |Base URL: ${llmConfig.baseUrl}
-                |API Key: *****${llmConfig.apiKey.substring(llmConfig.apiKey.length)}
-                |Provider: ${llmConfig.provider}
-            """.trimIndent()
+                |   ID: ${llmConfig.id}
+                |   Model Name: ${llmConfig.modelName}
+                |   Base URL: ${llmConfig.baseUrl}
+                |   Provider: ${llmConfig.provider}
+                |   API Key: ********
+            """.trimMargin()
             )
             return 0
         }
