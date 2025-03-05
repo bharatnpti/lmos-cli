@@ -46,11 +46,12 @@ class MacOSAgentStarter: AgentStarter {
         val timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS"))
 
 
+        val logFile = "application_$timestamp.log"
         val startCommand = arrayOf(
             "sh", "-c", """
         cd $agents &&
         $envVars &&
-        nohup ./gradlew -q --console=plain bootrun --args='$params' > application_$timestamp.log 2>&1 < /dev/null &
+        nohup ./gradlew -q --console=plain bootrun --args='$params' > $logFile 2>&1 < /dev/null &
         """.trimIndent()
         )
 
@@ -60,7 +61,7 @@ class MacOSAgentStarter: AgentStarter {
             println("Completed Command: ${startCommand.contentToString()}")
         }
 
-        return runAtFixedRate(setOf("STARTED", "FAILED"), 2000, 30, 4000) { checkForStartUpStatus(agents) }
+        return runAtFixedRate(setOf("STARTED", "FAILED"), 2000, 30, 4000) { checkForStartUpStatus(agents.resolve(logFile)) }
     }
 
     override fun checkStatus(): AgentStatus {

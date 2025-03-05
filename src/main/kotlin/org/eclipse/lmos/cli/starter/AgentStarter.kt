@@ -13,10 +13,12 @@ interface AgentStarter {
     fun checkStatus(): AgentStatus
 }
 
-fun checkForStartUpStatus(projectRootDirectory: Path): String {
+fun checkForStartUpStatus(logFile: Path): String {
 
     println("checking for status")
-    val logFile = projectRootDirectory.resolve("application.log")
+
+    //check and health endpoint
+//    val logFile = projectRootDirectory.resolve("application.log")
 
     val s = when {
         logFile.exists() -> {
