@@ -40,7 +40,7 @@ class DefaultLLMConfigManager : LLMConfigManager {
     override fun updateLLMConfig(llmConfig: LLMConfig): LLMConfig {
         val credentialManager = CredentialManagerFactory().getCredentialManager()
         credentialManager.deleteCredential(PREFIX, llmConfig.id)
-        credentialManager.addCredential(PREFIX, Credential(llmConfig.id, Yaml().encodeToString(llmConfig)))
+        credentialManager.addCredential(PREFIX, Credential(llmConfig.id, Yaml().encodeToString(LLMConfig.serializer(), llmConfig)))
         return llmConfig
     }
 
