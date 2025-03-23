@@ -41,5 +41,5 @@ object LmosCliConstants {
         }
     }
 
-    const val PREFIX = "LLM_CONFIG:"
+    const val PREFIX = "LLM_CONFIG_"
 }
