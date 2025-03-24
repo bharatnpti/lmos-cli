@@ -1,6 +1,7 @@
 package org.eclipse.lmos.cli.utils
 
 import java.io.BufferedReader
+import java.io.File
 import java.util.concurrent.TimeUnit
 
 
@@ -25,4 +26,31 @@ fun executeCommandStreaming(command: Array<String>, timeoutSeconds: Long, logs: 
         }
     }
     process.waitFor(timeoutSeconds, TimeUnit.SECONDS)
+}
+
+
+fun executeCommandWithProcessBuilder(
+    command: List<String>,
+    envVars: Map<String, String>,
+    workingDir: File,
+    wait: Boolean = true
+): String {
+    val processBuilder = ProcessBuilder(command)
+        .directory(workingDir)
+        .redirectErrorStream(true)
+        .redirectOutput(ProcessBuilder.Redirect.appendTo(File(workingDir, "application.log")))
+
+    // Add environment variables
+    val environment = processBuilder.environment()
+    environment.putAll(envVars)
+
+    val process = processBuilder.start()
+
+    var output = ""
+    if (wait) {
+        output = process.inputStream.bufferedReader().use(BufferedReader::readText)
+        process.waitFor()
+    }
+
+    return output
 }

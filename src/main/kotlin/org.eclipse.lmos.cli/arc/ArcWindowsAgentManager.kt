@@ -11,6 +11,7 @@ import org.eclipse.lmos.cli.agent.AgentManager
 import org.eclipse.lmos.cli.outbound.GenericRestClient
 import org.eclipse.lmos.cli.utils.executeCommand
 import org.eclipse.lmos.cli.utils.executeCommandStreaming
+import org.eclipse.lmos.cli.utils.executeCommandWithProcessBuilder
 import org.eclipse.lmos.cli.utils.runAtFixedRate
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
@@ -28,11 +29,14 @@ class ArcWindowsAgentManager : AgentManager {
             return AgentStatus.READY
         }
 
-        val envVars = getEnvVars(llmConfigs)
-        val startCommand = createStartCommandWindows(agents, envVars)
-        println("Start command: ${startCommand.joinToString(" ")}")
-//        executeCommandStreaming(startCommand, 20, mutableListOf())
-        executeCommand(startCommand, false)
+        val envVars = getEnvVarsMap(llmConfigs)
+//        val startCommand = createStartCommandWindows(agents, envVars)
+        val command = listOf("cmd", "/c", "gradlew.bat", "-q", "--console=plain", "bootrun")
+
+        println("Start command: ${command.joinToString(" ")}")
+//        executeCommand(startCommand, false)
+        executeCommandWithProcessBuilder(command, envVars, agents.toFile(), false)
+
 
         return getAgentStatus()
     }
@@ -63,6 +67,18 @@ class ArcWindowsAgentManager : AgentManager {
     """.trimIndent()
     )
 
+
+    private fun getEnvVarsMap(llmConfigs: List<LLMConfig>): Map<String, String> {
+        return llmConfigs.flatMapIndexed { index, config ->
+            listOf(
+                "ARC_AI_CLIENTS_${index}_ID" to config.id,
+                "ARC_AI_CLIENTS_${index}_CLIENT" to config.provider,
+                "ARC_AI_CLIENTS_${index}_URL" to config.baseUrl,
+                "ARC_AI_CLIENTS_${index}_APIKEY" to config.apiKey,
+                "ARC_AI_CLIENTS_${index}_MODELNAME" to config.modelName
+            )
+        }.toMap()
+    }
 
     private fun getEnvVars(llmConfigs: List<LLMConfig>) =
         llmConfigs.mapIndexed { index, config ->
