@@ -34,6 +34,7 @@ class ArcWindowsAgentManager : AgentManager {
         val command = listOf("cmd", "/c", "gradlew.bat", "-q", "--console=plain", "bootrun")
 
         println("Start command: ${command.joinToString(" ")}")
+        println("agents: ${agents.toFile()}")
 //        executeCommand(startCommand, false)
         executeCommandWithProcessBuilder(command, envVars, agents.toFile(), false)
 
@@ -105,6 +106,7 @@ class ArcWindowsAgentManager : AgentManager {
             log.error("Failed to connect to agent app", e)
             return AgentStatus.ERROR
         }
+        println("Response: ${response.status}")
         if (response.statusInfo.family == Response.Status.Family.SUCCESSFUL) {
             return AgentStatus.READY
         }
