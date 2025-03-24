@@ -43,6 +43,7 @@ class ArcWindowsAgentManager : AgentManager {
     }
 
     override fun getAgentStatus(): AgentStatus {
+        println("entered getAgentStatus")
         val result2 = runAtFixedRate(
             pollingDurationMillis = 2000L,  // 1 second
             maxAttempts = 10,
@@ -104,6 +105,7 @@ class ArcWindowsAgentManager : AgentManager {
             response = restClient.create("http://localhost:9090/health").get()
         } catch (e: Exception) {
             log.error("Failed to connect to agent app", e)
+            println("Failed to connect to agent app: $e")
             return AgentStatus.ERROR
         }
         println("Response: ${response.status}")
