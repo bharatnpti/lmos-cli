@@ -30,6 +30,7 @@ class ArcWindowsAgentManager : AgentManager {
 
         val envVars = getEnvVars(llmConfigs)
         val startCommand = createStartCommandWindows(agents, envVars)
+        println("Start command: ${startCommand.joinToString(" ")}")
 //        executeCommandStreaming(startCommand, 20, mutableListOf())
         executeCommand(startCommand, false)
 
