@@ -17,7 +17,7 @@ class AgentRegistry {
         var agentInfoList: MutableList<AgentInfo> = mutableListOf()
         if (!agentRegistryFile.exists()) {
             val createNewFile = agentRegistryFile.createNewFile()
-            println("agentRegistryFile file created: $createNewFile")
+            log.info("agentRegistryFile file created: $createNewFile")
             agentRegistryFile.setWritable(true, true)
         } else {
             agentInfoList = try {

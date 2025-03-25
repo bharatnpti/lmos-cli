@@ -3,6 +3,7 @@ package org.eclipse.lmos.cli.commands.config.llm
 import org.eclipse.lmos.cli.commands.agent.promptUser
 import org.eclipse.lmos.cli.llm.DefaultLLMConfigManager
 import org.eclipse.lmos.cli.llm.LLMConfig
+import org.eclipse.lmos.cli.utils.CliPrinter
 import picocli.CommandLine
 import java.util.concurrent.Callable
 
@@ -21,7 +22,7 @@ class UpdateLLMConfig : Callable<Int> {
         val llmConfigManager = DefaultLLMConfigManager()
         val llmConfig = llmConfigManager.getLLMConfig(id)
         if (llmConfig == null) {
-            printError("LLM not found: $id")
+            CliPrinter.printError("LLM not found: $id")
         } else {
             val modelName = promptUser("Enter model name", true) ?: llmConfig.modelName
             val baseUrl = promptUser("Enter base-url", true) ?: llmConfig.baseUrl
@@ -29,7 +30,7 @@ class UpdateLLMConfig : Callable<Int> {
             val provider = promptUser("Enter provider", true) ?: llmConfig.provider
             val updatedLLM = LLMConfig(id, modelName, baseUrl, apiKey, provider)
             llmConfigManager.updateLLMConfig(updatedLLM).let {
-                printSuccess("""
+                CliPrinter.printSuccess("""
                 LLM Config added successfully
                 |   ID: ${llmConfig.id}
                 |   Model Name: ${llmConfig.modelName}

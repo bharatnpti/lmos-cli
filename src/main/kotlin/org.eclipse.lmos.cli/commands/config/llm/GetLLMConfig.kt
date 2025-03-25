@@ -2,6 +2,7 @@ package org.eclipse.lmos.cli.commands.config.llm
 
 import org.eclipse.lmos.cli.commands.agent.promptUser
 import org.eclipse.lmos.cli.llm.DefaultLLMConfigManager
+import org.eclipse.lmos.cli.utils.CliPrinter
 import picocli.CommandLine
 import java.util.concurrent.Callable
 
@@ -18,10 +19,10 @@ class GetLLMConfig : Callable<Int> {
         val id = id ?: promptUser("Enter id")
         val llmConfig = DefaultLLMConfigManager().getLLMConfig(id)
         if (llmConfig == null) {
-            printError("LLM Config with ID $id not found")
+            CliPrinter.printError("LLM Config with ID $id not found")
             return 0
         } else {
-            printSuccess(
+            CliPrinter.printSuccess(
                 """
                 |   ID: ${llmConfig.id}
                 |   Model Name: ${llmConfig.modelName}

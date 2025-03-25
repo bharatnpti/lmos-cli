@@ -6,13 +6,8 @@ import net.mamoe.yamlkt.Yaml
 import org.eclipse.lmos.cli.constants.LmosCliConstants.CredentialManagerConstants.CREDENTIAL_DIRECTORY
 import org.eclipse.lmos.cli.credential.Credential
 import org.eclipse.lmos.cli.credential.CredentialManagerType
-import java.security.SecureRandom
+import org.slf4j.LoggerFactory
 import java.util.*
-import javax.crypto.Cipher
-import javax.crypto.SecretKeyFactory
-import javax.crypto.spec.GCMParameterSpec
-import javax.crypto.spec.PBEKeySpec
-import javax.crypto.spec.SecretKeySpec
 
 
 //fun main() {
@@ -61,6 +56,8 @@ import javax.crypto.spec.SecretKeySpec
 @ApplicationScoped
 class FileBasedCredentialManager : CredentialManager {
 
+    private val log = LoggerFactory.getLogger(FileBasedCredentialManager::class.java)
+
     companion object {
         private const val SECRET_KEY = "lmos-cli-secret"
     }
@@ -74,34 +71,58 @@ class FileBasedCredentialManager : CredentialManager {
     override fun testCredentialManager() = true
 
     override fun addCredential(prefix: String, credential: Credential) {
+        log.info("Adding credential with id {} for prefix {}", credential.id, prefix)
         val credentials = listCredentials(prefix).toMutableSet()
         val encryptedContent = encryption.encrypt(credential.content, SECRET_KEY)
         val encryptedCredential = credential.copy(
             content = Base64.getEncoder().encodeToString(encryptedContent)
         )
-        credentials.removeIf { it.id == credential.id } // Replace existing credential with same ID
+        val existingRemoved = credentials.removeIf { it.id == credential.id } // Replace existing credential with same ID
+        if (existingRemoved) {
+            log.info("Replaced existing credential with id {} for prefix {}", credential.id, prefix)
+        } else {
+            log.info("Adding new credential with id {} for prefix {}", credential.id, prefix)
+        }
         credentials.add(encryptedCredential)
         saveCredentials(prefix, credentials)
+        log.info("Credential with id {} for prefix {} added successfully", credential.id, prefix)
     }
 
     override fun listCredentials(prefix: String): Set<Credential> {
         val file = credentialFile(prefix)
-        if (!file.exists()) return setOf()
+        if (!file.exists()) {
+            log.info("No credential file found for prefix {}. Returning empty credential set.", prefix)
+            return setOf()
+        }
 
         val content = file.readText()
-        return yaml.decodeFromString(credentialSerializer, content).toSet()
+        try {
+            val credentials = yaml.decodeFromString(credentialSerializer, content).toSet()
+            log.info("Credentials for prefix {} listed successfully", prefix)
+            return credentials
+        } catch (e: Exception) {
+            log.error("Error decoding credentials from file for prefix {}: {}", prefix, e.message)
+            throw e
+        }
     }
 
     override fun getCredential(prefix: String, id: String): Credential? {
         val credential = listCredentials(prefix).find { it.id == id } ?: return null
-        val decryptedContent = encryption.readAndDecrypt(
-            SECRET_KEY,
-            Base64.getDecoder().decode(credential.content)
-        )
-        return credential.copy(content = decryptedContent)
+        try {
+            val decryptedContent = encryption.readAndDecrypt(
+               SECRET_KEY,
+                Base64.getDecoder().decode(credential.content)
+            )
+            log.info("Credential with id {} for prefix {} retrieved successfully", id, prefix)
+            return credential.copy(content = decryptedContent)
+        } catch (e: Exception) {
+            log.error("Error decrypting credential with id {} for prefix {}: {}", id, prefix, e.message)
+            throw e
+        }
     }
 
     override fun updateCredential(prefix: String, credential: Credential) {
+        log.info("Updating credential with id {} for prefix {}", credential.id, prefix)
         addCredential(prefix, credential)
     }
 
@@ -110,21 +131,37 @@ class FileBasedCredentialManager : CredentialManager {
         val removed = credentials.removeIf { it.id == id }
         if (removed) {
             if (credentials.isEmpty()) {
-                // Delete file if no credentials remain
                 credentialFile(prefix).delete()
+                log.info("No more credentials for prefix {}. Credential file deleted.", prefix)
             } else {
                 saveCredentials(prefix, credentials)
+                log.info("Credential with id {} for prefix {} deleted successfully", id, prefix)
             }
+        } else {
+            log.warn("Credential with id {} not found for prefix {}", id, prefix)
         }
     }
 
     override fun deleteAllCredentials(prefix: String) {
-        credentialFile(prefix).delete()
+        log.info("Deleting all credentials for prefix {}", prefix)
+        val file = credentialFile(prefix)
+        if (file.exists()) {
+            file.delete()
+            log.info("Credential file for prefix {} deleted successfully", prefix)
+        } else {
+            log.warn("Credential file for prefix {} does not exist", prefix)
+        }
     }
 
     private fun saveCredentials(prefix: String, credentials: Set<Credential>) {
-        val configYaml = yaml.encodeToString(credentialSerializer, credentials.toList())
-        credentialFile(prefix).writeText(configYaml)
+        try {
+            val configYaml = yaml.encodeToString(credentialSerializer, credentials.toList())
+            credentialFile(prefix).writeText(configYaml)
+            log.info("Credentials for prefix {} saved successfully", prefix)
+        } catch (e: Exception) {
+            log.error("Error saving credentials for prefix {}: {}", prefix, e.message)
+            throw e
+        }
     }
 
     private fun credentialFile(prefix: String) =
@@ -133,93 +170,3 @@ class FileBasedCredentialManager : CredentialManager {
 
 
 
-/**
- * Securely encrypts a string using AES-GCM and stores it in a file
- * Uses PBKDF2 for key derivation with a random salt
- */
-class SecureStringEncryption {
-    companion object {
-        private const val ALGORITHM = "AES/GCM/NoPadding"
-        private const val KEY_ALGORITHM = "AES"
-        private const val KEY_DERIVATION_ALGORITHM = "PBKDF2WithHmacSHA256"
-        private const val ITERATIONS = 65536 // High iteration count for security
-        private const val KEY_LENGTH = 256
-        private const val GCM_TAG_LENGTH = 128
-        private const val GCM_IV_LENGTH = 12
-        private const val SALT_LENGTH = 32
-    }
-
-    /**
-     * Encrypts a string with a password and writes it to a file
-     * @param plainText The string to encrypt
-     * @param password The password used for encryption
-     * @param outputFile The file to write the encrypted data to
-     */
-    fun encrypt(plainText: String, password: String): ByteArray {
-        // Generate random salt for PBKDF2
-        val salt = ByteArray(SALT_LENGTH).apply {
-            SecureRandom().nextBytes(this)
-        }
-
-        // Generate a secure key using PBKDF2
-        val secretKey = deriveKey(password, salt)
-
-        // Generate random IV for GCM mode
-        val iv = ByteArray(GCM_IV_LENGTH).apply {
-            SecureRandom().nextBytes(this)
-        }
-
-        // Initialize cipher for encryption
-        val cipher = Cipher.getInstance(ALGORITHM)
-        val gcmParameterSpec = GCMParameterSpec(GCM_TAG_LENGTH, iv)
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey, gcmParameterSpec)
-
-        // Encrypt the data
-        val encryptedBytes = cipher.doFinal(plainText.toByteArray())
-
-        // Combine salt, IV, and encrypted data for storage
-        val outputData = ByteArray(salt.size + iv.size + encryptedBytes.size).apply {
-            System.arraycopy(salt, 0, this, 0, salt.size)
-            System.arraycopy(iv, 0, this, salt.size, iv.size)
-            System.arraycopy(encryptedBytes, 0, this, salt.size + iv.size, encryptedBytes.size)
-        }
-        return outputData;
-    }
-
-    /**
-     * Decrypts a string from a file using the provided password
-     * @param password The password used for decryption
-     * @param inputFile The file containing the encrypted data
-     * @return The decrypted string
-     */
-    fun readAndDecrypt(password: String, encryptedData: ByteArray): String {
-
-        // Extract salt, IV, and encrypted bytes
-        val salt = encryptedData.copyOfRange(0, SALT_LENGTH)
-        val iv = encryptedData.copyOfRange(SALT_LENGTH, SALT_LENGTH + GCM_IV_LENGTH)
-        val encrypted = encryptedData.copyOfRange(SALT_LENGTH + GCM_IV_LENGTH, encryptedData.size)
-
-        // Derive the key using the same password and extracted salt
-        val secretKey = deriveKey(password, salt)
-
-        // Initialize cipher for decryption
-        val cipher = Cipher.getInstance(ALGORITHM)
-        val gcmParameterSpec = GCMParameterSpec(GCM_TAG_LENGTH, iv)
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, gcmParameterSpec)
-
-        // Decrypt the data
-        val decryptedBytes = cipher.doFinal(encrypted)
-
-        return String(decryptedBytes)
-    }
-
-    /**
-     * Derives an encryption key from a password and salt using PBKDF2
-     */
-    private fun deriveKey(password: String, salt: ByteArray): SecretKeySpec {
-        val spec = PBEKeySpec(password.toCharArray(), salt, ITERATIONS, KEY_LENGTH)
-        val factory = SecretKeyFactory.getInstance(KEY_DERIVATION_ALGORITHM)
-        val keyBytes = factory.generateSecret(spec).encoded
-        return SecretKeySpec(keyBytes, KEY_ALGORITHM)
-    }
-}

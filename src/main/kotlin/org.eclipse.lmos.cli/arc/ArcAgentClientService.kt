@@ -61,6 +61,7 @@ class ArcAgentClientService {
                             )
                     }
                 } catch (e: Exception) {
+                    log.error("Exception in ArcAgentClientService askAgent with host: $host and agent: $agentName, : ${e.message}, ${e.stackTrace}")
                     throw RuntimeException(e.message)
                 }
             }

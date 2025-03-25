@@ -9,6 +9,14 @@ object LmosCliConstants {
         Path.of(System.getProperty("user.home")).resolve(".lmos").resolve("cli")
     }
 
+    val LOG_DIR: Path by lazy {
+        PROJECT_ROOT_DIR.resolve("logs")
+    }
+
+    val LOG_FILE_PATH: Path by lazy {
+        LOG_DIR.resolve("lmos-cli.log")
+    }
+
     object AgentStarterConstants {
         const val PACKAGE_NAME = "org.eclipse.lmos.starter"
         private val AGENT_DIRECTORY: Path by lazy {

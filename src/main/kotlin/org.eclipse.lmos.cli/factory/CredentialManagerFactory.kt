@@ -1,9 +1,7 @@
 package org.eclipse.lmos.cli.factory
 
 import org.eclipse.lmos.cli.credential.CredentialManagerType
-import org.eclipse.lmos.cli.credential.manager.CredentialManager
 import org.eclipse.lmos.cli.credential.manager.FileBasedCredentialManager
-import org.eclipse.lmos.cli.credential.manager.MacOSCredentialManager
 import org.slf4j.LoggerFactory
 
 class CredentialManagerFactory {

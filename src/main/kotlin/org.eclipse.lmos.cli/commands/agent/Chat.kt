@@ -3,18 +3,21 @@ package org.eclipse.lmos.cli.commands.agent
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import org.eclipse.lmos.arc.api.Message
-import org.eclipse.lmos.cli.*
+import org.eclipse.lmos.cli.Conversation
+import org.eclipse.lmos.cli.InputContext
+import org.eclipse.lmos.cli.SystemContext
+import org.eclipse.lmos.cli.UserContext
+import org.eclipse.lmos.cli.agent.AgentManager
 import org.eclipse.lmos.cli.agent.AgentType
-import org.eclipse.lmos.cli.commands.config.llm.printConvOutput
-import org.eclipse.lmos.cli.commands.config.llm.printError
-import org.eclipse.lmos.cli.commands.config.llm.printSuccess
-import org.eclipse.lmos.cli.commands.config.llm.printlnHeader
+import org.eclipse.lmos.cli.arc.ArcAgentClientService
+import org.eclipse.lmos.cli.factory.AgentManagerFactory
 import org.eclipse.lmos.cli.llm.DefaultLLMConfigManager
 import org.eclipse.lmos.cli.llm.LLMConfig
 import org.eclipse.lmos.cli.registry.agent.AgentRegistry
-import org.eclipse.lmos.cli.agent.AgentManager
-import org.eclipse.lmos.cli.arc.ArcAgentClientService
-import org.eclipse.lmos.cli.factory.AgentManagerFactory
+import org.eclipse.lmos.cli.utils.CliPrinter.printConvOutput
+import org.eclipse.lmos.cli.utils.CliPrinter.printError
+import org.eclipse.lmos.cli.utils.CliPrinter.printSuccess
+import org.eclipse.lmos.cli.utils.CliPrinter.printlnHeader
 import picocli.CommandLine
 import java.util.*
 import kotlin.collections.List
@@ -52,7 +55,7 @@ class Chat : Runnable {
     }
 
     private fun getLogs(agentInfo: AgentInfo): List<String> {
-        val agentManager: AgentManager = AgentManagerFactory().agentManager()
+        val agentManager: AgentManager = AgentManagerFactory.agentManager()
         return agentManager.getLogs(agentInfo)
     }
 
@@ -74,21 +77,27 @@ class Chat : Runnable {
             messages.add(Message(role = "user", content = input, turnId = turnId))
 
             var response = ""
-            runBlocking {
-                ArcAgentClientService().askAgent(
-                    Conversation(InputContext(messages), systemContext, userContext),
-                    conversationId, turnId, agentInfo.name, "localhost"
-                ).collect {
-                    response = it
+            try {
+                runBlocking {
+                    ArcAgentClientService().askAgent(
+                        Conversation(InputContext(messages), systemContext, userContext),
+                        conversationId, turnId, agentInfo.name, "localhost"
+                    ).collect {
+                        response = it
+                    }
                 }
+                history.add(input to response)
+                printConvOutput("${agentInfo.name}:", response)
+            } catch (e: Exception) {
+                printError("An error occurred while communicating with the agent: ${e.message}")
+                shutdownAgent(agentInfo)
+                break
             }
-            history.add(input to response)
-            printConvOutput("${agentInfo.name}:", response)
         }
     }
 
     private fun shutdownAgent(agentInfo: AgentInfo) {
-        val agentManager: AgentManager = AgentManagerFactory().agentManager()
+        val agentManager: AgentManager = AgentManagerFactory.agentManager()
         agentManager.shutdownAgent(agentInfo)
     }
 
@@ -97,7 +106,7 @@ class Chat : Runnable {
         val llmConfigs: List<LLMConfig> = defaultLLMConfigManager.listLLMConfig().mapNotNull {
             defaultLLMConfigManager.getLLMConfig(it)
         }
-        val agentManager: AgentManager = AgentManagerFactory().agentManager()
+        val agentManager: AgentManager = AgentManagerFactory.agentManager()
         return agentManager.startAgent(llmConfigs) == AgentStatus.READY
     }
 }

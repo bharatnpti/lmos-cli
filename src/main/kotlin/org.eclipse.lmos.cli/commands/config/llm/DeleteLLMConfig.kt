@@ -2,6 +2,7 @@ package org.eclipse.lmos.cli.commands.config.llm
 
 import org.eclipse.lmos.cli.commands.agent.promptUser
 import org.eclipse.lmos.cli.llm.DefaultLLMConfigManager
+import org.eclipse.lmos.cli.utils.CliPrinter
 import picocli.CommandLine
 import java.util.concurrent.Callable
 
@@ -21,11 +22,11 @@ class DeleteLLMConfig : Callable<Int> {
         val existingLLMConfig = llmConfigManager.getLLMConfig(id)
 
         if (existingLLMConfig == null) {
-            printError("LLM Config not found with id: $id")
+            CliPrinter.printError("LLM Config not found with id: $id")
             return 0
         } else {
             llmConfigManager.deleteLLMConfig(id)
-            printSuccess("Deleted LLM with id: $id, modelName: ${existingLLMConfig.modelName}")
+            CliPrinter.printSuccess("Deleted LLM with id: $id, modelName: ${existingLLMConfig.modelName}")
             return 0
         }
     }

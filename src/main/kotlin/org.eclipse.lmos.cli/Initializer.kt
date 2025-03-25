@@ -4,10 +4,13 @@ import jakarta.inject.Singleton
 import org.eclipse.lmos.cli.constants.LmosCliConstants.AgentStarterConstants.AGENTS_REGISTRY
 import org.eclipse.lmos.cli.constants.LmosCliConstants.AgentStarterConstants.AGENT_PROJECTS_DIRECTORY
 import org.eclipse.lmos.cli.constants.LmosCliConstants.CredentialManagerConstants.CREDENTIAL_DIRECTORY
-import org.eclipse.lmos.cli.constants.LmosCliConstants.PROJECT_ROOT_DIR
+import org.eclipse.lmos.cli.constants.LmosCliConstants.LOG_DIR
+import org.eclipse.lmos.cli.constants.LmosCliConstants.LOG_FILE_PATH
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import kotlin.io.path.createDirectories
+import kotlin.io.path.createFile
+
 
 @Singleton
 class Initializer {
@@ -15,12 +18,24 @@ class Initializer {
     private val log = LoggerFactory.getLogger(Initializer::class.java)
 
     fun initialize(): Int {
-        println("Initializing LMOS CLI")
+        setLogFilePath()
         ensureDirectories()
         return 0
     }
 
+    private fun setLogFilePath() {
+        val logFile = LOG_FILE_PATH.createFile()
+        System.setProperty("custom.logfile.path", logFile.toString());
+        log.info("Logging initialized at {}", logFile)
+    }
+
     private fun ensureDirectories() {
+        if (Files.notExists(LOG_DIR)) {
+            LOG_DIR.createDirectories()
+        }
+        if (Files.notExists(LOG_FILE_PATH)) {
+            LOG_FILE_PATH.createFile()
+        }
         if (Files.notExists(AGENT_PROJECTS_DIRECTORY)) {
             AGENT_PROJECTS_DIRECTORY.createDirectories()
         }

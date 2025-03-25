@@ -3,6 +3,8 @@ package org.eclipse.lmos.cli.commands.config.llm
 import org.eclipse.lmos.cli.commands.agent.promptUser
 import org.eclipse.lmos.cli.llm.DefaultLLMConfigManager
 import org.eclipse.lmos.cli.llm.LLMConfig
+import org.eclipse.lmos.cli.utils.CliPrinter.printError
+import org.eclipse.lmos.cli.utils.CliPrinter.printSuccess
 import picocli.CommandLine
 import java.util.concurrent.Callable
 

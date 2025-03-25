@@ -5,14 +5,14 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 
 
-fun executeCommand(command: Array<String>, wait: Boolean = true): String {
+fun executeCommand(command: Array<String>, wait: Boolean = true): Pair<Long, String> {
     val process = ProcessBuilder(*command).redirectErrorStream(true).start()
     var output = ""
     if(wait) {
         output = process.inputStream.bufferedReader().use(BufferedReader::readText)
         process.waitFor()
     }
-    return output
+    return Pair(process.pid(), output)
 }
 
 fun executeCommandStreaming(command: Array<String>, timeoutSeconds: Long, logs: MutableList<String>) {
@@ -29,12 +29,12 @@ fun executeCommandStreaming(command: Array<String>, timeoutSeconds: Long, logs: 
 }
 
 
-fun executeCommandWithProcessBuilder(
+fun executeCommand(
     command: List<String>,
     envVars: Map<String, String>,
     workingDir: File,
     wait: Boolean = true
-): String {
+): Pair<Long, String>  {
     val processBuilder = ProcessBuilder(command)
         .directory(workingDir)
         .redirectErrorStream(true)
@@ -52,5 +52,5 @@ fun executeCommandWithProcessBuilder(
         process.waitFor()
     }
 
-    return output
+    return Pair(process.pid(), output)
 }

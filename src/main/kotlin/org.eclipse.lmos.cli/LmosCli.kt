@@ -6,6 +6,7 @@ import io.quarkus.runtime.annotations.QuarkusMain
 import jakarta.inject.Inject
 import org.eclipse.lmos.cli.commands.agent.Agent
 import org.eclipse.lmos.cli.commands.config.Config
+import org.eclipse.lmos.cli.constants.LmosCliConstants.LOG_FILE_PATH
 import picocli.CommandLine
 
 
@@ -20,17 +21,10 @@ import picocli.CommandLine
         Config::class
     ], description = ["LMOS Command Line Interface"]
 )
-class LmosCli : Runnable, QuarkusApplication {
-
-
-    override fun run() {
-        println("Original run")
-        CommandLine.usage(this, System.out);
-    }
-
+class LmosCli : QuarkusApplication {
     override fun run(vararg args: String?): Int {
         println("Quarkus run")
-        TODO("Not yet implemented")
+        return 0
     }
 //
     private fun executionStrategy(parseResult: CommandLine.ParseResult): Int {
@@ -50,15 +44,3 @@ class LmosCli : Runnable, QuarkusApplication {
     }
 
 }
-
-//@ApplicationScoped
-//internal class CustomConfiguration {
-//    @Produces
-//    fun customCommandLine(factory: PicocliCommandLineFactory): CommandLine {
-//        return factory.create()
-//            .setExecutionStrategy {
-//                    parseResult: CommandLine.ParseResult -> Initializer().initialize() }
-//            .setCommandName("Test name")
-//
-//    }
-//}

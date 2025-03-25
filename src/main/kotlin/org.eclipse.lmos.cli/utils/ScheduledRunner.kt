@@ -32,3 +32,18 @@ fun runAtFixedRate(pollingDurationMillis: Long, maxAttempts: Long, initialDelayM
     }
     return result
 }
+
+fun runAtFixedRate(pollingDurationMillis: Long, initialDelayMillis: Long = 0, fn: () -> Any, breakFn: (Any) -> Boolean, loopFn: () -> Boolean): Any {
+    var result = Any()
+    runBlocking {
+        delay(initialDelayMillis)
+        while (loopFn()) {
+            delay(pollingDurationMillis)
+            result = fn()
+            if(breakFn(result)) {
+                break
+            }
+        }
+    }
+    return result
+}

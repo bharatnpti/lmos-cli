@@ -1,12 +1,10 @@
 package org.eclipse.lmos.cli.commands.agent
 
 import org.eclipse.lmos.cli.agent.AgentType
-import org.eclipse.lmos.cli.commands.config.llm.printError
-import org.eclipse.lmos.cli.commands.config.llm.printSuccess
-import org.eclipse.lmos.cli.commands.config.llm.promptUserInput
 import org.eclipse.lmos.cli.constants.LmosCliConstants.AgentStarterConstants.AGENT_PROJECTS_DIRECTORY
 import org.eclipse.lmos.cli.constants.LmosCliConstants.AgentStarterConstants.PACKAGE_NAME
 import org.eclipse.lmos.cli.registry.agent.AgentRegistry
+import org.eclipse.lmos.cli.utils.CliPrinter
 import org.eclipse.lmos.starter.LmosAgentGeneratorService
 import org.eclipse.lmos.starter.config.AgentConfig
 import org.eclipse.lmos.starter.config.ProjectConfig
@@ -53,7 +51,7 @@ class Create : Callable<Int> {
 
         val agentRegistry = AgentRegistry()
         agentRegistry.findAgent(agentName!!)?.let {
-            printError("Agent with name $agentName already exists")
+            CliPrinter.printError("Agent with name $agentName already exists")
             return 0
         }
 
@@ -62,7 +60,7 @@ class Create : Callable<Int> {
 
         LmosAgentGeneratorService().generateAgentProject(GradleSpringProjectFactory(), projectConfig, agentConfig)
 
-        printSuccess("Agent Created: $agentName")
+        CliPrinter.printSuccess("Agent Created: $agentName")
 
         agentRegistry.registerAgent(AgentInfo(agentName!!, AgentType.ARC))
 
@@ -77,10 +75,10 @@ fun promptUser(message: String, values: Array<String>? = null): String = promptU
 fun promptUser(message: String, optional: Boolean, values: Array<String>? = null): String? {
     var input: String?
     do {
-        promptUserInput("$message ")
+        CliPrinter.promptUserInput("$message ")
         input = readlnOrNull()?.takeIf { it.isNotBlank() }
         if (input == null && optional) return null
         if (input != null && (values == null || input in values)) return input
-        printError("Invalid value entered.")
+        CliPrinter.printError("Invalid value entered.")
     } while (true)
 }

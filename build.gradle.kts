@@ -30,8 +30,8 @@ dependencies {
     implementation("org.eclipse.lmos:lmos-starter:0.0.1-SNAPSHOT")
     implementation("org.eclipse.lmos:arc-agent-client:0.1.0-SNAPSHOT")
     implementation("org.eclipse.lmos:arc-api:0.1.0-SNAPSHOT")
-    implementation("net.java.dev.jna:jna:5.14.0")
-    implementation("net.java.dev.jna:jna-platform:5.14.0")
+    implementation("ch.qos.logback:logback-classic:1.4.11")
+    implementation("org.slf4j:slf4j-api:2.0.9")
 
     testImplementation("io.quarkus:quarkus-junit5")
 }
