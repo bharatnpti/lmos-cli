@@ -1,8 +1,8 @@
 plugins {
     java
     id("io.quarkus")
-    kotlin("jvm")
-    kotlin("plugin.serialization") version "1.8.0"
+    kotlin("jvm") version "2.1.0"
+    kotlin("plugin.serialization") version "2.1.0"
 }
 
 repositories {
@@ -19,7 +19,7 @@ val quarkusPlatformVersion: String by project
 
 dependencies {
     implementation(enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
-    implementation(kotlin("stdlib-jdk8"))
+    implementation(kotlin("stdlib"))
     implementation("io.quarkus:quarkus-kotlin")
     implementation("io.quarkus:quarkus-picocli")
     implementation("io.quarkus:quarkus-arc")
@@ -48,5 +48,5 @@ tasks.withType<JavaCompile> {
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(23)
 }
