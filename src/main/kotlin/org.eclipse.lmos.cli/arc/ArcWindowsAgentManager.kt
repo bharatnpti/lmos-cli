@@ -108,7 +108,7 @@ class ArcWindowsAgentManager : AgentManager {
             println("Failed to connect to agent app: $e")
             return AgentStatus.ERROR
         }
-        println("Response: ${response.status}")
+        println("getAgentAppStatus Response: ${response.status}")
         if (response.statusInfo.family == Response.Status.Family.SUCCESSFUL) {
             return AgentStatus.READY
         }
