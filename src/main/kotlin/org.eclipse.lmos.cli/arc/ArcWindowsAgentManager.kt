@@ -15,6 +15,9 @@ import org.eclipse.lmos.cli.utils.executeCommandWithProcessBuilder
 import org.eclipse.lmos.cli.utils.runAtFixedRate
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 
 class ArcWindowsAgentManager : AgentManager {
@@ -104,11 +107,19 @@ class ArcWindowsAgentManager : AgentManager {
         try {
             response = restClient.create("http://localhost:9090/health").get()
         } catch (e: Exception) {
-            log.error("Failed to connect to agent app", e)
-            println("Failed to connect to agent app: $e")
+            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+            val zonedDateTime = ZonedDateTime.now(TimeZone.getTimeZone("Asia/Kolkata").toZoneId())
+
+            val formattedTime = zonedDateTime.format(formatter)
+            log.error("$formattedTime: Failed to connect to agent app", e)
+            println("$formattedTime: Failed to connect to agent app: $e")
             return AgentStatus.ERROR
         }
-        println("getAgentAppStatus Response: ${response.status}")
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+        val zonedDateTime = ZonedDateTime.now(TimeZone.getTimeZone("Asia/Kolkata").toZoneId())
+
+        val formattedTime = zonedDateTime.format(formatter)
+        println("$formattedTime: getAgentAppStatus Response: ${response.status}")
         if (response.statusInfo.family == Response.Status.Family.SUCCESSFUL) {
             return AgentStatus.READY
         }
