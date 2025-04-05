@@ -24,9 +24,8 @@ class Initializer {
     }
 
     private fun setLogFilePath() {
-        val logFile = LOG_FILE_PATH.createFile()
-        System.setProperty("custom.logfile.path", logFile.toString());
-        log.info("Logging initialized at {}", logFile)
+        System.setProperty("custom.logfile.path", LOG_FILE_PATH.toString());
+        log.info("Logging initialized at {}", LOG_FILE_PATH.toString())
     }
 
     private fun ensureDirectories() {

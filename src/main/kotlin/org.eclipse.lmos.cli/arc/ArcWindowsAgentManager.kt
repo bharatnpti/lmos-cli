@@ -23,7 +23,7 @@ class ArcWindowsAgentManager : ArcAgentManager() {
         val envVars = getEnvVars(llmConfigs)
 //        val command = listOf("cmd", "/c", "gradlew.bat", "-q", "--console=plain", "bootrun")
 
-        val command = listOf( agents?.resolve("gradlew")?.toAbsolutePath()?.toString() ?: "./gradlew", "-q", "--console=plain", "clean", "bootrun" )
+        val command = listOf( "gradlew", "-q", "--console=plain", "clean", "bootrun" )
 
         println("Start command: ${command.joinToString(" ")}")
         println("agents: ${agents.toFile()}")
