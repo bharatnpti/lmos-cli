@@ -17,7 +17,7 @@ class AgentManagerFactory {
             return when(os) {
                 CredentialManagerType.MAC -> arcMacOSAgentManager
                 CredentialManagerType.WIN -> arcWindowsAgentManager
-                CredentialManagerType.LINUX -> TODO()
+                CredentialManagerType.LINUX -> arcMacOSAgentManager
             }
         }
     }

@@ -18,8 +18,8 @@ class Initializer {
     private val log = LoggerFactory.getLogger(Initializer::class.java)
 
     fun initialize(): Int {
-        setLogFilePath()
         ensureDirectories()
+        setLogFilePath()
         return 0
     }
 
