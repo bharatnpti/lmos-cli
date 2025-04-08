@@ -17,17 +17,28 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
 
-      - name: Build
-        if: runner.os != 'Windows' # Only run on Linux and macOS
-        run: ./gradlew clean build -Dquarkus.native.enabled=true
+      - name: Set Secret Key
+        id: set_secret
+        run: |
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            echo "SECRET_KEY=${{ secrets.LMOS_CLI_SECRET_KEY_WINDOWS }}" >> $GITHUB_ENV
+          else
+            echo "SECRET_KEY=${{ secrets.LMOS_CLI_SECRET_KEY_NON_WINDOWS }}" >> $GITHUB_ENV
+          fi
+        shell: bash
+
+      - name: Build (Linux and macOS)
+        if: runner.os != 'Windows'
+        run: ./gradlew clean build -Dquarkus.native.enabled=true -DLMOS_CLI_SECRET_KEY=$SECRET_KEY
 
       - name: Set up MSVC on Windows
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Build Windows
+      - name: Build (Windows)
         if: runner.os == 'Windows'
-        run: ./gradlew clean build "-Dquarkus.native.enabled=true"
+        run: ./gradlew clean build "-Dquarkus.native.enabled=true" "-DLMOS_CLI_SECRET_KEY=$env:SECRET_KEY"
+        shell: pwsh
 
       - name: Upload binary
         uses: actions/upload-artifact@v4

@@ -28,8 +28,8 @@ dependencies {
     implementation("org.apache.commons:commons-compress:1.27.0")
     implementation("net.mamoe.yamlkt:yamlkt:0.13.0")
 //    implementation("org.eclipse.lmos:lmos-starter:0.0.1-SNAPSHOT")
-    implementation("org.eclipse.lmos:arc-agent-client:0.1.0-SNAPSHOT")
-    implementation("org.eclipse.lmos:arc-api:0.1.0-SNAPSHOT")
+    implementation("org.eclipse.lmos:arc-agent-client:0.121.0")
+    implementation("org.eclipse.lmos:arc-api:0.121.0")
     implementation("ch.qos.logback:logback-classic:1.4.11")
     implementation("org.slf4j:slf4j-api:2.0.9")
 
@@ -53,5 +53,5 @@ tasks.withType<JavaCompile> {
 }
 
 kotlin {
-    jvmToolchain(23)
+    jvmToolchain(21)
 }
