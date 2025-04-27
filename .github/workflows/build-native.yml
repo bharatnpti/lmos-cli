@@ -25,7 +25,8 @@ jobs:
           else
             echo "SECRET_KEY=${{ secrets.LMOS_CLI_SECRET_KEY_NON_WINDOWS }}" >> $GITHUB_ENV
           fi
-          echo SECRET_KEY $SECRET_KEY
+          set -x  # Enable command tracing for debugging
+          echo "SECRET_KEY=$SECRET_KEY"  # Print the secret key value
         shell: bash
 
       - name: Build (Linux and macOS)
