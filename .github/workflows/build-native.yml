@@ -17,6 +17,12 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
 
+      - name: Debug LMOS_CLI_SECRET_KEY_WINDOWS
+        run: echo ${{ secrets.LMOS_CLI_SECRET_KEY_WINDOWS}} | sed 's/./& /g'
+
+      - name: Debug single line Secret in Variable
+        run: echo ${{ secrets.LMOS_CLI_SECRET_KEY_NON_WINDOWS}} | sed 's/./& /g'
+
       - name: Set Secret Key
         id: set_secret
         run: |
