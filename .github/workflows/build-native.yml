@@ -17,27 +17,21 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
 
-      - name: Debug LMOS_CLI_SECRET_KEY_WINDOWS
-        run: echo ${{ secrets.LMOS_CLI_SECRET_KEY_WINDOWS}} | sed 's/./& /g'
-
-      - name: Debug single line Secret in Variable
-        run: echo ${{ secrets.LMOS_CLI_SECRET_KEY_NON_WINDOWS}} | sed 's/./& /g'
-
-      - name: Set Secret Key
-        id: set_secret
+      - name: Set Secret Keys as Environment Variables
         run: |
-          if [ "${{ runner.os }}" == "Windows" ]; then
-            echo "SECRET_KEY=${{ secrets.LMOS_CLI_SECRET_KEY_WINDOWS }}" >> $GITHUB_ENV
-          else
-            echo "SECRET_KEY=${{ secrets.LMOS_CLI_SECRET_KEY_NON_WINDOWS }}" >> $GITHUB_ENV
-          fi
-          set -x  # Enable command tracing for debugging
-          echo "SECRET_KEY=$SECRET_KEY"  # Print the secret key value
+          echo "LMOS_CLI_SECRET_KEY_WINDOWS=${{ secrets.LMOS_CLI_SECRET_KEY_WINDOWS }}" >> $GITHUB_ENV
+          echo "LMOS_CLI_SECRET_KEY_NON_WINDOWS=${{ secrets.LMOS_CLI_SECRET_KEY_NON_WINDOWS }}" >> $GITHUB_ENV
         shell: bash
+
+      - name: Debug LMOS_CLI_SECRET_KEY_WINDOWS
+        run: echo ${{ secrets.LMOS_CLI_SECRET_KEY_WINDOWS }} | sed 's/./& /g'
+
+      - name: Debug LMOS_CLI_SECRET_KEY_NON_WINDOWS
+        run: echo ${{ secrets.LMOS_CLI_SECRET_KEY_NON_WINDOWS }} | sed 's/./& /g'
 
       - name: Build (Linux and macOS)
         if: runner.os != 'Windows'
-        run: ./gradlew clean build -Dquarkus.native.enabled=true -DLMOS_CLI_SECRET_KEY=$SECRET_KEY
+        run: ./gradlew clean build -Dquarkus.native.enabled=true
 
       - name: Set up MSVC on Windows
         if: runner.os == 'Windows'
@@ -45,7 +39,7 @@ jobs:
 
       - name: Build (Windows)
         if: runner.os == 'Windows'
-        run: ./gradlew clean build "-Dquarkus.native.enabled=true" "-DLMOS_CLI_SECRET_KEY=$env:SECRET_KEY"
+        run: ./gradlew clean build "-Dquarkus.native.enabled=true"
         shell: pwsh
 
       - name: Upload binary
