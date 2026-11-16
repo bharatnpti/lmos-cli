@@ -1,74 +1,76 @@
-# code-with-quarkus
+# lmos-cli
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+A command-line tool for [Eclipse LMOS](https://github.com/eclipse-lmos), the open-source platform for building and running multi-agent systems.
+It scaffolds new [Arc](https://github.com/eclipse-lmos/arc) agent projects and keeps your LLM provider settings and API keys in the OS keychain rather than in plain-text config files.
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+Built with Kotlin, Quarkus and Picocli.
 
-## Running the application in dev mode
+> **Status: prototype (early 2025).** `agent create` and `config llm` work on macOS. `agent chat` is a skeleton, `agent install` and `agent list` are not implemented yet, and the Linux and Windows credential stores are still open. See [Roadmap](#roadmap).
 
-You can run your application in dev mode that enables live coding using:
+## Commands
 
-```shell script
-./gradlew quarkusDev
+```
+lmos
+├── agent
+│   ├── create   Generate a new agent project
+│   └── chat     Chat with a local agent (work in progress)
+└── config
+    └── llm      add | get | list | update | delete
 ```
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+### Create an agent
 
-## Packaging and running the application
+```bash
+lmos agent create -t ARC --an weather-agent --am gpt-4o \
+  --ad "Answers questions about the weather" \
+  --ap "You are a helpful weather assistant."
+```
 
-The application can be packaged using:
+Any option you leave out is prompted for interactively. The command generates a Gradle and Spring Boot project for an Arc agent, with the name, model, description and system prompt filled in, under `~/.lmos/cli/agents/projects/`.
 
-```shell script
+### Manage LLM configs
+
+```bash
+lmos config llm add -i openai     # prompts for model, base URL, API key and provider
+lmos config llm list              # IDs only; secrets are never printed
+lmos config llm get -i openai     # API key masked to its last 4 characters
+lmos config llm update -i openai
+lmos config llm delete -i openai
+```
+
+Each config (model name, base URL, API key, provider) is serialised to YAML and stored as one secret per ID.
+
+## Design
+
+| Piece | What it does |
+|---|---|
+| `LmosCli` | The Picocli `@TopCommand`. On first run it creates `~/.lmos/cli/` (agent projects, agent registry, credential store). |
+| `LLMConfigManager` | CRUD for LLM configs on top of whichever credential manager is active |
+| `CredentialManager` | Interface for secret storage, with one implementation per platform |
+| `MacOSCredentialManager` | Stores secrets in the macOS Keychain through the `security` CLI |
+| `DefaultCredentialManager` | Fallback store: an AES-encrypted file in `~/.lmos/cli/.cred/` |
+| `CredentialManagerFactory` | Picks the store for the current OS, checks that it works, falls back to the default store if not, and records the choice so later runs use the same store |
+| `Create` | Calls the `lmos-starter` generator (`LmosAgentGeneratorService` + `GradleSpringProjectFactory`) |
+
+## Build
+
+Requirements: JDK 21. The build also needs the `org.eclipse.lmos:lmos-starter:0.0.1-SNAPSHOT` generator library in your local Maven repository, because it is not published to Maven Central yet.
+
+```bash
 ./gradlew build
+java -jar build/quarkus-app/quarkus-run.jar --help
+alias lmos='java -jar /path/to/lmos-cli/build/quarkus-app/quarkus-run.jar'
 ```
 
-It produces the `quarkus-run.jar` file in the `build/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `build/quarkus-app/lib/` directory.
+Dev mode with live reload:
 
-The application is now runnable using `java -jar build/quarkus-app/quarkus-run.jar`.
-
-If you want to build an _über-jar_, execute the following command:
-
-```shell script
-./gradlew build -Dquarkus.package.jar.type=uber-jar
+```bash
+./gradlew quarkusDev --quarkus-args='config llm list'
 ```
 
-The application, packaged as an _über-jar_, is now runnable using `java -jar build/*-runner.jar`.
+## Roadmap
 
-## Creating a native executable
-
-You can create a native executable using:
-
-```shell script
-./gradlew build -Dquarkus.native.enabled=true
-```
-
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
-
-```shell script
-./gradlew build -Dquarkus.native.enabled=true -Dquarkus.native.container-build=true
-```
-
-You can then execute your native executable with: `./build/code-with-quarkus-1.0.0-SNAPSHOT-runner`
-
-If you want to learn more about building native executables, please consult <https://quarkus.io/guides/gradle-tooling>.
-
-## Related Guides
-
-- Picocli ([guide](https://quarkus.io/guides/picocli)): Develop command line applications with Picocli
-
-## Provided Code
-
-### Picocli Example
-
-Hello and goodbye are civilization fundamentals. Let's not forget it with this example picocli application by changing the <code>command</code> and <code>parameters</code>.
-
-[Related guide section...](https://quarkus.io/guides/picocli#command-line-application-with-multiple-commands)
-
-Also for picocli applications the dev mode is supported. When running dev mode, the picocli application is executed and on press of the Enter key, is restarted.
-
-As picocli applications will often require arguments to be passed on the commandline, this is also possible in dev mode via:
-
-```shell script
-./gradlew quarkusDev --quarkus-args='Quarky'
-```
+- `agent chat`: start the generated agent and route the conversation to it (the `AgentCommunicator` and `AgentRegistry` interfaces are in place)
+- `agent install` / `agent list`: install agents and tools from a registry
+- Credential stores for Linux (Secret Service) and Windows (Credential Manager)
+- Native binary through Quarkus/GraalVM
